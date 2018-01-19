@@ -1,0 +1,52 @@
+# mongod.conf
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+systemLog:
+  destination: file
+  logAppend: true
+  path: /var/log/mongodb/mongod.log
+
+storage:
+  dbPath: {{ mongodb_datadir_prefix }}/mongo
+  journal:
+    enabled: true
+  syncPeriodSecs: 60
+  wiredTiger:
+    engineConfig:
+      journalCompressor: snappy
+    collectionConfig:
+      blockCompressor: snappy
+    indexConfig:
+      prefixCompression: true
+
+processManagement:
+  fork: true  # fork and run in background
+  pidFilePath: /var/run/mongodb/mongod.pid  # location of pidfile
+  {% if mongo_version == '3.6' %}timeZoneInfo: /usr/share/zoneinfo{% endif %}
+
+net:
+  port: {{ mongod_port }}
+  bindIp: 0.0.0.0
+  maxIncomingConnections: 65536
+  wireObjectCheck: true
+  compression:
+    compressors: snappy
+
+operationProfiling:
+  mode: off
+
+security:
+#  authorization: enabled
+  keyFile: {{ mongodb_datadir_prefix }}/secret
+
+replication:
+  replSetName: mongo_rep
+
+#sharding:
+
+## Enterprise-Only Options
+
+#auditLog:
+
+#snmp:

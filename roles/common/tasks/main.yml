@@ -1,0 +1,64 @@
+---
+# This Playbook runs all the common plays in the deployment
+- name: Create the hosts file for all machines
+  template: src=hosts.j2 dest=/etc/hosts
+
+- name: Create the repository for mongod-org-{{ mongo_version }}.repo
+  template: src=mongod-org.repo.j2 dest=/etc/yum.repos.d/mongod-org-{{ mongo_version }}.repo
+
+- name: Add epel repository
+  yum_repository:
+    name: epel
+    description: EPEL YUM repo
+    baseurl: https://download.fedoraproject.org/pub/epel/7/SRPMS
+    mirrorlist: https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+    gpgcheck: no
+
+- name: Create the mongod user
+  user: name=mongod comment="MongoD"
+
+- name: Create the data directory for the namenode metadata
+  file: path={{ mongodb_datadir_prefix }} owner=mongod group=mongod state=directory
+
+- name: Install the mongodb package
+  yum: name={{ item }} state=installed
+  with_items:
+   - mongodb-org
+   - python-pip
+  environment:
+    - HTTP_PROXY: '{{ http_proxy }}'
+    - HTTPS_PROXY: '{{ https_proxy }}'
+    - http_proxy: '{{ http_proxy }}'
+    - https_proxy: '{{ https_proxy }}'
+
+- shell: pip install --upgrade pip --proxy='{{ http_proxy }}'
+  register: result
+  changed_when: '"Requirement already up-to-date" not in result.stdout'
+
+- shell: pip install pymongo --proxy='{{ http_proxy }}'
+  register: result
+  changed_when: '"Requirement already up-to-date" not in result.stdout'
+
+## Fixed #3
+- name: Disable transparent huge page function(performance tuning)
+  copy: src=disable-transparent-hugepages.j2 dest=/etc/init.d/disable-transparent-hugepages mode=0755
+
+- service:
+    name: disable-transparent-hugepages
+    enabled: yes
+
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# @@ CATION                                              @@
+# @@ This syntax does NOT worked. encounters pip cmd bug @@
+# - name: Upgrade the latest pymongo package
+#   pip: name=pip state=latest use_mirrors=no
+#
+# - name: Install the latest pymongo package
+#   pip: name=pymongo state=latest use_mirrors=no
+# @@                                                     @@
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+# Omit to CentOS7
+# - name: Create the iptables file
+#   template: src=iptables.j2 dest=/etc/sysconfig/iptables
+#   notify: restart iptables

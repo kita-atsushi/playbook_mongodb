@@ -1,0 +1,36 @@
+---
+# This role deploys the mongod processes and sets up the replication set.
+
+- name: create data directory for mongodb
+  file: path={{ mongodb_datadir_prefix }}/mongo state=directory owner=mongod group=mongod
+
+- name: Create the mongodb configuration file
+  template: src=mongod_first.conf.j2 dest=/etc/mongod.conf
+
+- name: Copy the keyfile for authentication
+  copy: src=secret dest={{ mongodb_datadir_prefix }}/secret owner=mongod group=mongod mode=0400
+
+- name: Start the mongod service
+  systemd: state=started name=mongod
+
+# - name: add the admin user
+#   mongodb_user: database=admin name=admin password={{ mongo_admin_pass }} login_port={{ mongod_port }} state=present
+#   ignore_errors: yes
+# Instead of
+- name: Copy to add_user js file
+  template: src=adduser.j2 dest=/tmp/adduser.j2
+
+- name: add the admin user
+  shell: /usr/bin/mongo --port "{{ mongod_port }}" < /tmp/adduser.j2
+
+- name: Create the mongodb configuration file with authentication and replication
+  template: src=mongod_auth_rep.conf.j2 dest=/etc/mongod.conf
+
+- name: Restart the mongod service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: mongod
+
+- name: Pause for a while
+  pause: seconds=30

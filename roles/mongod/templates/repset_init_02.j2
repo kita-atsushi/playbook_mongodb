@@ -1,0 +1,11 @@
+use admin;
+db.auth("admin", "{{ mongo_admin_pass }}")
+{% for host in groups['initial_secondary_server'] %}
+rs.add("{{ host }}:{{ mongod_port }}")
+sleep(13000)
+{% endfor %}
+{% for host in groups['initial_arbiter_server'] %}
+rs.addArb("{{ host }}:{{ mongod_port }}")
+sleep(13000)
+{% endfor %}
+printjson(rs.status())

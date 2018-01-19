@@ -1,0 +1,15 @@
+mongod_port: 27017
+
+# The directory prefix where the database files would be stored
+mongodb_datadir_prefix: /data
+
+# The interface where the mongodb process should listen on.
+# Defaults to the first interface. Change this to:
+# iface: '{{ ansible_default_ipv4.interface }}'
+iface: enp0s8
+
+# The password for admin user
+mongo_admin_pass: 123456
+
+mongo_version: 3.6
+

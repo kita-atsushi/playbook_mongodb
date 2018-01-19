@@ -1,0 +1,16 @@
+---
+- hosts: all
+  roles:
+  - role: common
+  become: true
+
+- hosts: mongo_servers
+  roles:
+  - role: mongod
+  become: true
+
+- hosts: initial_primary_server
+  tasks:
+  - include: roles/mongod/tasks/replica_set.yml
+  become: true
+

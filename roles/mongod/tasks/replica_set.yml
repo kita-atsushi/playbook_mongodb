@@ -1,0 +1,14 @@
+- name: Create the file to initialize the mongod replica set. phase 01
+  template: src=roles/mongod/templates/repset_init_01.j2 dest=/tmp/repset_init_01.js
+
+- name: Initialize the replication set phase 01
+  shell: /usr/bin/mongo --port "{{ mongod_port }}" < /tmp/repset_init_01.js
+
+- name: Pause for a while
+  pause: seconds=30
+
+- name: Create the file to initialize the mongod replica set. phase 02
+  template: src=roles/mongod/templates/repset_init_02.j2 dest=/tmp/repset_init_02.js
+
+- name: Initialize the replication set phase 02
+  shell: /usr/bin/mongo --port "{{ mongod_port }}" < /tmp/repset_init_02.js
