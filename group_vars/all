@@ -13,3 +13,4 @@ mongo_admin_pass: 123456
 
 mongo_version: 3.6
 
+replicaset_name: mongo_rep

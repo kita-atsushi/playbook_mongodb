@@ -41,9 +41,10 @@ security:
   keyFile: {{ mongodb_datadir_prefix }}/secret
 
 replication:
-  replSetName: mongo_rep
+  replSetName: {{ replicaset_name }}
 
-#sharding:
+sharding:
+  clusterRole: shardsvr
 
 ## Enterprise-Only Options
 

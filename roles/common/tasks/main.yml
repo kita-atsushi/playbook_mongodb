@@ -1,5 +1,15 @@
 ---
 # This Playbook runs all the common plays in the deployment
+- name: Set the hostname using the inventory
+  hostname: name={{ inventory_hostname }}
+  sudo: yes
+
+- name: Check status of selinux
+  shell: getenforce
+
+- name: Permissive selinux
+  selinux: policy=targeted state=permissive
+
 - name: Create the hosts file for all machines
   template: src=hosts.j2 dest=/etc/hosts
 
